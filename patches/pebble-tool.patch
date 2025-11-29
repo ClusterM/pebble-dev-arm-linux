@@ -1,40 +1,24 @@
 diff --git a/pebble_tool/sdk/manager.py b/pebble_tool/sdk/manager.py
-index d9ebf2a..1f55496 100644
+index d9ebf2a..9b1146b 100644
 --- a/pebble_tool/sdk/manager.py
 +++ b/pebble_tool/sdk/manager.py
-@@ -212,6 +212,20 @@ class SDKManager(object):
-             shutil.move(os.path.join(toolchain_path, 'toolchain-' + platform_name, folder), toolchain_path)
-         os.rmdir(os.path.join(toolchain_path, 'toolchain-' + platform_name))
+@@ -105,6 +105,7 @@ class SDKManager(object):
+             self._install_from_handle(f)
  
-+        # Clear the arm-none-eabi/bin directory after installation
-+        bin_dir = os.path.join(toolchain_path, 'arm-none-eabi', 'bin')
-+        print(f"Removing x86/x64 binaries in {bin_dir}")
-+        if os.path.exists(bin_dir):
-+            for filename in os.listdir(bin_dir):
-+                file_path = os.path.join(bin_dir, filename)
-+                try:
-+                    if os.path.isfile(file_path) or os.path.islink(file_path):
-+                        os.remove(file_path)
-+                    elif os.path.isdir(file_path):
-+                        shutil.rmtree(file_path)
-+                except OSError as ex:
-+                    print(f"File {file_path} - error: {ex}")
+     def install_toolchain_from_url(self, url, sdk_version, platform_name):
++        return
+         print("Downloading toolchain...")
+ 
+         response = requests.head(url)
+@@ -160,6 +161,11 @@ class SDKManager(object):
+                 Requirements(sdk_info['requirements']).ensure_satisfied()
+                 os.mkdir(os.path.join(self.sdk_dir, sdk_info['version']))
+                 t.extractall(path)
 +
-     def install_remote_sdk(self, version):
-         sdk_info = self.request("/v1/files/sdk-core/{}?channel={}".format(version, self.get_channel())).json()
-         if 'version' not in sdk_info:
-diff --git a/pebble_tool/sdk/templates/app/wscript b/pebble_tool/sdk/templates/app/wscript
-index 5238bc8..996b662 100644
---- a/pebble_tool/sdk/templates/app/wscript
-+++ b/pebble_tool/sdk/templates/app/wscript
-@@ -12,6 +12,10 @@ out = 'build'
- def options(ctx):
-     ctx.load('pebble_sdk')
- 
-+    # Fix for strftime builtin declaration mismatch error
-+    for platform in ctx.all_envs:
-+        env = ctx.all_envs[platform]
-+        env.CFLAGS += ['-Wno-error=builtin-declaration-mismatch']
- 
- def configure(ctx):
-     """
++            print("Patching waf...")
++            waf_path = os.path.join(path, "sdk-core", "pebble", "waf")
++            subprocess.check_call(["patch", waf_path, "/root/waf.patch"])
++
+             venv_path = os.path.join(path, ".venv")
+             print("Preparing venv... (this may take a while)")
+             subprocess.check_call([sys.executable, "-m", "venv", venv_path])
