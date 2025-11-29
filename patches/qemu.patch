@@ -1,5 +1,5 @@
 diff --git a/include/ui/console.h b/include/ui/console.h
-index c249db4f7..53236d639 100644
+index c249db4f7..7574d7e6d 100644
 --- a/include/ui/console.h
 +++ b/include/ui/console.h
 @@ -437,6 +437,7 @@ int index_from_key(const char *key);
@@ -8,14 +8,31 @@ index c249db4f7..53236d639 100644
  void early_gtk_display_init(int opengl);
 -void gtk_display_init(DisplayState *ds, bool full_screen, bool grab_on_hover);
 +void gtk_display_init(DisplayState *ds, bool full_screen, bool grab_on_hover,
-+                      bool detach_display);
++                      bool detach_display, bool zoom_to_fit, bool no_grab);
  
  #endif
 diff --git a/ui/gtk.c b/ui/gtk.c
-index b95336de3..0aa70b604 100644
+index b95336de3..cf9c002ff 100644
 --- a/ui/gtk.c
 +++ b/ui/gtk.c
-@@ -1157,6 +1157,12 @@ static gboolean gd_tab_window_close(GtkWidget *widget, GdkEvent *event,
+@@ -172,6 +172,7 @@ struct GtkDisplayState {
+     bool modifier_pressed[ARRAY_SIZE(modifier_keycode)];
+     bool has_evdev;
+     bool ignore_keys;
++    bool no_grab;
+ };
+ 
+ static void gd_grab_pointer(VirtualConsole *vc, const char *reason);
+@@ -932,7 +933,7 @@ static gboolean gd_button_event(GtkWidget *widget, GdkEventButton *button,
+ 
+     /* implicitly grab the input at the first click in the relative mode */
+     if (button->button == 1 && button->type == GDK_BUTTON_PRESS &&
+-        !qemu_input_is_absolute() && s->ptr_owner != vc) {
++        !qemu_input_is_absolute() && s->ptr_owner != vc && !s->no_grab) {
+         if (!vc->window) {
+             gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(s->grab_item),
+                                            TRUE);
+@@ -1157,6 +1158,12 @@ static gboolean gd_tab_window_close(GtkWidget *widget, GdkEvent *event,
      VirtualConsole *vc = opaque;
      GtkDisplayState *s = vc->s;
  
@@ -28,7 +45,17 @@ index b95336de3..0aa70b604 100644
      gtk_widget_set_sensitive(vc->menu_item, true);
      gd_widget_reparent(vc->window, s->notebook, vc->tab_item);
      gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(s->notebook),
-@@ -2028,7 +2034,39 @@ static void gd_set_keycode_type(GtkDisplayState *s)
+@@ -1379,6 +1386,9 @@ static void gd_grab_pointer(VirtualConsole *vc, const char *reason)
+ #ifdef NO_MOUSE
+     return;
+ #endif
++    if (vc->s->no_grab) {
++        return;
++    }
+     GdkDisplay *display = gtk_widget_get_display(vc->gfx.drawing_area);
+ 
+     if (vc->s->ptr_owner) {
+@@ -2028,12 +2038,46 @@ static void gd_set_keycode_type(GtkDisplayState *s)
  
  static gboolean gtkinit;
  
@@ -65,11 +92,18 @@ index b95336de3..0aa70b604 100644
 +}
 +
 +void gtk_display_init(DisplayState *ds, bool full_screen, bool grab_on_hover,
-+                      bool detach_display)
++                      bool detach_display, bool zoom_to_fit, bool no_grab)
  {
      GtkDisplayState *s = g_malloc0(sizeof(*s));
      char *filename;
-@@ -2114,6 +2152,15 @@ void gtk_display_init(DisplayState *ds, bool full_screen, bool grab_on_hover)
+     GdkDisplay *window_display;
+ 
++    s->no_grab = no_grab;
++
+     if (!gtkinit) {
+         fprintf(stderr, "gtk initialization failed\n");
+         exit(1);
+@@ -2114,6 +2158,24 @@ void gtk_display_init(DisplayState *ds, bool full_screen, bool grab_on_hover)
      if (grab_on_hover) {
          gtk_menu_item_activate(GTK_MENU_ITEM(s->grab_on_hover_item));
      }
@@ -82,22 +116,33 @@ index b95336de3..0aa70b604 100644
 +            gtk_widget_hide(s->window);
 +        }
 +    }
++    if (zoom_to_fit) {
++        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(s->zoom_fit_item),
++                                       TRUE);
++    }
++    if (no_grab) {
++        /* Disable grab menu items when grab is disabled */
++        gtk_widget_set_sensitive(s->grab_item, FALSE);
++        gtk_widget_set_sensitive(s->grab_on_hover_item, FALSE);
++    }
  
      gd_set_keycode_type(s);
  }
 diff --git a/vl.c b/vl.c
-index 4211ff1ff..dd5e2d594 100644
+index 4211ff1ff..d4237dedb 100644
 --- a/vl.c
 +++ b/vl.c
-@@ -153,6 +153,7 @@ static int no_frame = 0;
+@@ -153,6 +153,9 @@ static int no_frame = 0;
  int no_quit = 0;
  #ifdef CONFIG_GTK
  static bool grab_on_hover;
 +static bool detach_display;
++static bool zoom_to_fit;
++static bool no_grab;
  #endif
  CharDriverState *serial_hds[MAX_SERIAL_PORTS];
  CharDriverState *parallel_hds[MAX_PARALLEL_PORTS];
-@@ -2194,6 +2195,15 @@ static DisplayType select_display(const char *p)
+@@ -2194,6 +2197,33 @@ static DisplayType select_display(const char *p)
                  } else {
                      goto invalid_gtk_args;
                  }
@@ -110,15 +155,34 @@ index 4211ff1ff..dd5e2d594 100644
 +                } else {
 +                    goto invalid_gtk_args;
 +                }
++            } else if (strstart(opts, ",zoom_to_fit=", &nextopt)) {
++                opts = nextopt;
++                if (strstart(opts, "on", &nextopt)) {
++                    zoom_to_fit = true;
++                } else if (strstart(opts, "off", &nextopt)) {
++                    zoom_to_fit = false;
++                } else {
++                    goto invalid_gtk_args;
++                }
++            } else if (strstart(opts, ",grab=", &nextopt)) {
++                opts = nextopt;
++                if (strstart(opts, "on", &nextopt)) {
++                    no_grab = false;
++                } else if (strstart(opts, "off", &nextopt)) {
++                    no_grab = true;
++                } else {
++                    goto invalid_gtk_args;
++                }
              } else {
              invalid_gtk_args:
                  error_report("invalid GTK option string");
-@@ -4597,7 +4607,7 @@ int main(int argc, char **argv, char **envp)
+@@ -4597,7 +4627,8 @@ int main(int argc, char **argv, char **envp)
  #endif
  #if defined(CONFIG_GTK)
      case DT_GTK:
 -        gtk_display_init(ds, full_screen, grab_on_hover);
-+        gtk_display_init(ds, full_screen, grab_on_hover, detach_display);
++        gtk_display_init(ds, full_screen, grab_on_hover, detach_display,
++                         zoom_to_fit, no_grab);
          break;
  #endif
      default:

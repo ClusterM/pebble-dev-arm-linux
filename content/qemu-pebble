@@ -1,2 +1,2 @@
 #!/bin/bash
-exec /usr/local/bin/qemu-system-arm -display gtk,detach=on "$@"
+exec /usr/local/bin/qemu-system-arm -display gtk,detach=on,zoom_to_fit=on,grab=off "$@"
