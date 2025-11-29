@@ -17,7 +17,7 @@ index d9ebf2a..9b1146b 100644
 +
 +            print("Patching waf...")
 +            waf_path = os.path.join(path, "sdk-core", "pebble", "waf")
-+            subprocess.check_call(["patch", waf_path, "/root/waf.patch"])
++            subprocess.check_call(["patch", waf_path, "/root/patches/waf.patch"])
 +
              venv_path = os.path.join(path, ".venv")
              print("Preparing venv... (this may take a while)")
