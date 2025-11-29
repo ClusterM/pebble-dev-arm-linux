@@ -1,0 +1,71 @@
+--- waf	2025-11-07 21:51:59.783537626 +0000
++++ waf	2025-11-29 22:31:56.111114311 +0000
+@@ -55,6 +55,59 @@
+ 	print(('\033[91mError: %s\033[0m' % m))
+ 	sys.exit(1)
+ 
++def patch_pebble_gcc(dir):
++	try:
++		gcc_file = os.path.join(dir, "waflib", "extras", "pebble_sdk_gcc.py")
++		if not os.path.exists(gcc_file):
++			print(f"Can't find {gcc_file}! But I must patch it.")
++			return False
++		print(f"Patching {gcc_file}...")
++		with open(gcc_file, 'r', encoding='utf-8') as f:
++			content = f.read()
++		if '-Wno-error=builtin-declaration-mismatch' in content:
++			print("File already patched")
++			return True
++		lines = content.split('\n')
++		modified = False
++
++		for i, line in enumerate(lines):
++			if 'c_warnings=' in line and '-Wno-error=builtin-declaration-mismatch' not in line:
++				# Check if it's a single-line list (ends with ])
++				if line.rstrip().endswith(']'):
++					# Single-line: add flag before closing bracket
++					lines[i] = line.rstrip()[:-1] + ",'-Wno-error=builtin-declaration-mismatch']"
++					modified = True
++				else:
++					# Multi-line list, find the closing bracket on next lines
++					for j in range(i + 1, min(i + 10, len(lines))):
++						if ']' in lines[j]:
++							# Insert flag before closing bracket
++							# Preserve the indentation style (tabs or spaces)
++							indent_match = re.match(r'^(\s*)', lines[j])
++							indent = indent_match.group(1) if indent_match else ''
++							# Find the position of ']' and insert before it
++							bracket_pos = lines[j].find(']')
++							if bracket_pos > 0:
++								# Insert on a new line before the closing bracket
++								lines[j] = indent + "'-Wno-error=builtin-declaration-mismatch',\n" + lines[j]
++							else:
++								# ']' is at the start, add before it
++								lines[j] = indent + "'-Wno-error=builtin-declaration-mismatch',\n" + lines[j]
++							modified = True
++							break
++				break
++		if modified:
++			new_content = '\n'.join(lines)
++			with open(gcc_file, 'w', encoding='utf-8') as f:
++				f.write(new_content)
++			print("Successfully patched")
++			return True
++		else:
++			err("File was not modified (pattern not matched)")
++	except Exception as e:
++		err(f"Failed to patch {gcc_file}: {e}")
++	return False
++
+ def unpack_wafdir(dir, src):
+ 	f = open(src,'rb')
+ 	c = 'corrupt archive (%d)'
+@@ -106,6 +159,8 @@
+ 	finally:
+ 		t.close()
+ 
++	patch_pebble_gcc(dir)
++
+ 	for x in ('Tools', 'extras'):
+ 		os.chmod(join('waflib',x), 493)
+ 
