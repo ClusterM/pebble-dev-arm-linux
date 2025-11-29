@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Wrapper script to run pebble-tool
+
+IMAGE="clustermeerkat/pebble-dev-arm-linux:1.0"
+
+# Maximum inactivity time in minutes
+STOP_AFTER=30
+
+# Generate container name based on current directory full path
+# Replace all characters except [a-zA-Z0-9] with hyphens
+CONTAINER_NAME=$(pwd | sed 's/[^a-zA-Z0-9]/-/g')
+# Remove leading and trailing hyphens
+CONTAINER_NAME="${CONTAINER_NAME#-}"
+CONTAINER_NAME="${CONTAINER_NAME%-}"
+# If name is empty, use default value
+if [ -z "$CONTAINER_NAME" ]; then
+    CONTAINER_NAME="pebble"
+fi
+
+# echo Container name: $CONTAINER_NAME
+
+if [ "$1" == "docker-stop" ]; then
+    echo "Stopping container $CONTAINER_NAME"
+    docker stop "$CONTAINER_NAME"
+    exit 0
+elif [ "$1" == "docker-rm" ]; then
+    echo "Removing container $CONTAINER_NAME"
+    docker rm "$CONTAINER_NAME"
+    exit 0
+fi
+
+xhost +SI:localuser:root 2>&1 > /dev/null
+
+# Check if container exists
+if ! docker inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
+    # Container doesn't exist, create it
+    echo "Creating container $CONTAINER_NAME"
+#    docker run -d --name="$CONTAINER_NAME" --restart=no -v ./:/app -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority:ro -e DISPLAY -e QT_SCALE_FACTOR=1 -e STOP_AFTER="$STOP_AFTER" "$IMAGE"
+    docker run -d --name="$CONTAINER_NAME" \
+        --restart=no \
+        -v ./:/app \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -v ~/.Xauthority:/root/.Xauthority:ro \
+        -e DISPLAY \
+        -e STOP_AFTER="$STOP_AFTER" \
+        "$IMAGE"
+else
+    # Container exists, check if it's running
+    CONTAINER_RUNNING=$(docker ps -q --filter "name=^${CONTAINER_NAME}$" 2>/dev/null)
+    if [ -z "$CONTAINER_RUNNING" ]; then
+        # Container is stopped, start it
+        echo "Starting container $CONTAINER_NAME"
+        docker start "$CONTAINER_NAME" >/dev/null
+    fi
+fi
+
+# Check if first parameter is "gdb" to add -t flag
+if [ "$1" == "gdb" ]; then
+    docker exec -it "$CONTAINER_NAME" pebble "$@"
+else
+    docker exec -i "$CONTAINER_NAME" pebble "$@"
+fi
