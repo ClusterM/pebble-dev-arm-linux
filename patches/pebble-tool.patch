@@ -1,5 +1,5 @@
 diff --git a/pebble_tool/sdk/manager.py b/pebble_tool/sdk/manager.py
-index d9ebf2a..9b1146b 100644
+index d9ebf2a..e05f575 100644
 --- a/pebble_tool/sdk/manager.py
 +++ b/pebble_tool/sdk/manager.py
 @@ -105,6 +105,7 @@ class SDKManager(object):
@@ -10,14 +10,20 @@ index d9ebf2a..9b1146b 100644
          print("Downloading toolchain...")
  
          response = requests.head(url)
-@@ -160,6 +161,11 @@ class SDKManager(object):
+@@ -160,6 +161,17 @@ class SDKManager(object):
                  Requirements(sdk_info['requirements']).ensure_satisfied()
                  os.mkdir(os.path.join(self.sdk_dir, sdk_info['version']))
                  t.extractall(path)
 +
 +            print("Patching waf...")
 +            waf_path = os.path.join(path, "sdk-core", "pebble", "waf")
-+            subprocess.check_call(["patch", waf_path, "/root/patches/waf.patch"])
++            if os.path.exists(waf_path):
++                try:
++                    subprocess.check_call(["patch", waf_path, "/root/patches/waf.patch"])
++                except subprocess.CalledProcessError:
++                    print("Failed to patch waf. Continuing...")
++            else:
++                print("Waf not found. Continuing...")
 +
              venv_path = os.path.join(path, ".venv")
              print("Preparing venv... (this may take a while)")
