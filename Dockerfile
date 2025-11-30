@@ -56,8 +56,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     && git apply /root/patches/pebble-tool.patch \
     && pip3 install . --break-system-packages \
     && cd /root \
-    && rm -rf /root/pebble-tool \
-    && pebble sdk install latest \
     && git clone https://gitlab.com/qemu-project/dtc.git --branch=v1.7.2 \
     && cd /root/dtc \
     && meson build \
@@ -95,10 +93,10 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         git \
         python \
         python3-pip \
-        python3-venv \
         zip \
     && apt-get autoremove -y \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pebble sdk install 4.9.77
 
 ENTRYPOINT ["tini", "--", "/root/docker-entrypoint.sh"]
