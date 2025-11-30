@@ -1,13 +1,10 @@
-# STPyV8 ARM
+# STPyV8 ARM Stub
 
-This is a compatible replacement for STPyV8 that works on ARM processors. Since building the original STPyV8 (which uses Google V8 JavaScript engine) is extremely complex on ARM architecture, this package provides similar functionality using the lighter Duktape JavaScript engine via the `dukpy` library.
+This is a stub package for STPyV8 on ARM processors. STPyV8 (which uses Google V8 JavaScript engine) is not available for ARM architecture, so this package provides the same interface but raises an exception when used.
 
-## Features
+## Purpose
 
-- Compatible API with STPyV8
-- Works on ARM64 processors
-- Uses Duktape engine (lighter than V8)
-- Simple installation
+This stub allows code that imports STPyV8 to work without modification, but clearly indicates that STPyV8 functionality is not available on ARM systems. When any STPyV8 functionality is accessed, a `STPyV8NotAvailableError` exception is raised.
 
 ## Installation
 
@@ -15,10 +12,7 @@ This is a compatible replacement for STPyV8 that works on ARM processors. Since 
 pip install .
 ```
 
-Or install dependencies manually:
-```bash
-pip install dukpy
-```
+No additional dependencies are required.
 
 ## Usage
 
@@ -26,33 +20,30 @@ pip install dukpy
 # Main import method (compatible with original STPyV8)
 import STPyV8 as v8
 
-# Basic usage
-result = v8.evaljs("1 + 2")
-print(result)  # 3
+# Any attempt to use STPyV8 will raise an exception
+try:
+    result = v8.evaljs("1 + 2")
+except STPyV8.STPyV8NotAvailableError as e:
+    print(f"STPyV8 is not available: {e}")
 
-# Using JSContext (similar to original STPyV8)
-with v8.JSContext() as ctx:
-    result = ctx.eval("Math.PI * 2")
-    print(result)  # 6.283185307179586
+# Same for JSContext
+try:
+    with v8.JSContext() as ctx:
+        result = ctx.eval("Math.PI * 2")
+except STPyV8.STPyV8NotAvailableError as e:
+    print(f"STPyV8 is not available: {e}")
 
-# Direct class imports
-from STPyV8 import JSContext, JSError
+# Direct class imports also work
+from STPyV8 import JSContext, JSError, STPyV8NotAvailableError
 
 try:
     with JSContext() as ctx:
-        result = ctx.eval("some_invalid_code()")
-except JSError as e:
-    print(f"JavaScript error: {e}")
+        result = ctx.eval("some_code()")
+except STPyV8NotAvailableError as e:
+    print(f"STPyV8 is not available: {e}")
 ```
 
-## Differences from original STPyV8
-
-- Uses Duktape instead of V8 engine
-- Some advanced V8-specific features may be unavailable
-- Lower memory consumption
-- Faster startup time
-
-## Why this replacement?
+## Why a stub?
 
 Building STPyV8 from source requires:
 1. Building Google V8 JavaScript engine from source
@@ -64,17 +55,18 @@ On ARM processors, this process is especially complex due to:
 - Memory requirements for building V8
 - Platform-specific optimizations
 
-This replacement provides similar functionality with much simpler deployment.
+This stub provides the same interface as STPyV8, allowing code to import it without errors, but clearly indicates that the functionality is not available on ARM systems.
 
 ## API compatibility
 
 The package provides the following classes and functions compatible with STPyV8:
 
-- `STPyV8.JSContext` - JavaScript execution context
-- `STPyV8.JSError` - JavaScript exception
-- `STPyV8.JSEngine` - Engine information
-- `STPyV8.JSClass` - Decorator/metaclass for creating JavaScript-compatible classes
-- `STPyV8.evaljs(code)` - Function for quick JavaScript execution
+- `STPyV8.JSContext` - JavaScript execution context (raises exception when instantiated)
+- `STPyV8.JSError` - JavaScript exception class
+- `STPyV8.JSEngine` - Engine information stub
+- `STPyV8.JSClass` - Decorator/metaclass stub (raises exception when used)
+- `STPyV8.evaljs(code)` - Function stub (raises exception when called)
+- `STPyV8.STPyV8NotAvailableError` - Exception raised when STPyV8 functionality is requested
 
 ## Testing
 

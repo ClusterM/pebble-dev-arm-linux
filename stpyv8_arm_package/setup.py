@@ -10,7 +10,7 @@ setup(
     version="13.1.201.22",
     author="ARM Build Assistant",
     author_email="",
-    description="STPyV8 compatibility layer for ARM processors using Duktape engine",
+    description="STPyV8 stub for ARM processors (raises exception when used)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="",
@@ -29,11 +29,9 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Internet :: WWW/HTTP",
     ],
-    keywords="javascript v8 stpyv8 dukpy duktape arm",
+    keywords="javascript v8 stpyv8 arm stub",
     python_requires=">=3.9",
-    install_requires=[
-        "dukpy>=0.5.0",
-    ],
+    install_requires=[],
     project_urls={
         "Bug Reports": "",
         "Source": "",

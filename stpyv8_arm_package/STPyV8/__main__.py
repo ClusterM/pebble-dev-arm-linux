@@ -1,52 +1,35 @@
 #!/usr/bin/env python3
 """
-Test script for STPyV8 ARM
+Test script for STPyV8 ARM stub
 """
 
-from . import STPyV8, JSContext, JSError, JSEngine, evaljs
+from . import STPyV8, JSContext, JSError, JSEngine, evaljs, STPyV8NotAvailableError
 
 def main():
-    print("STPyV8 ARM Compatibility Layer")
+    print("STPyV8 ARM Stub")
     print("Engine:", JSEngine.version)
     print()
 
-    # Test basic functionality
-    print("Basic tests:")
+    # Test that stub raises exception
+    print("Testing stub behavior:")
     try:
-        print("1 + 2 =", evaljs("1 + 2"))
-        print("Math.PI =", evaljs("Math.PI"))
-        print("'hello'.toUpperCase() =", evaljs("'hello'.toUpperCase()"))
-
-        # Test array operations
-        print("Array test:", evaljs("[1, 2, 3].map(x => x * 2)"))
-
-        # Test object operations
-        print("Object test:", evaljs("JSON.stringify({name: 'test', value: 42})"))
-
+        evaljs("1 + 2")
+    except STPyV8NotAvailableError as e:
+        print("✓ evaljs() correctly raises exception:", str(e)[:60] + "...")
     except Exception as e:
-        print(f"Error in basic tests: {e}")
-    print()
+        print("✗ Unexpected exception type:", type(e).__name__)
 
-    # Test context usage
-    print("Context tests:")
     try:
         with JSContext() as ctx:
-            result = ctx.eval("var x = 10; x * 2;")
-            print("Context eval result:", result)
-
-        # Test error handling
-        try:
-            with JSContext() as ctx:
-                ctx.eval("invalid.javascript.code()")
-        except JSError as e:
-            print("Error handling works:", str(e)[:50] + "...")
-
+            pass
+    except STPyV8NotAvailableError as e:
+        print("✓ JSContext() correctly raises exception:", str(e)[:60] + "...")
     except Exception as e:
-        print(f"Error in context tests: {e}")
-    print()
+        print("✗ Unexpected exception type:", type(e).__name__)
 
-    print("STPyV8 ARM is ready to use!")
-    print("Note: This uses Duktape engine instead of V8, but provides similar API.")
+    print()
+    print("STPyV8 is not available on ARM architecture.")
+    print("This stub provides the same interface but raises exceptions when used.")
 
 if __name__ == "__main__":
     main()
