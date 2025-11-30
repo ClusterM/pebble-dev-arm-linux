@@ -44,10 +44,12 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         git \
         python \
         python3 \
+        python3-dev \
         python3-pip \
         python3-venv \
         npm \
         patch \
+        patchelf \
         zip \
         gdb-multiarch \
     && cd /root/stpyv8_arm_package && pip3 install . --break-system-packages \
@@ -93,6 +95,7 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         bison \
         git \
         python \
+        python3-dev \
         python3-pip \
         zip \
     && apt-get autoremove -y \
