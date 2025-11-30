@@ -49,6 +49,7 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         npm \
         patch \
         zip \
+        gdb-multiarch \
     && cd /root/stpyv8_arm_package && pip3 install . --break-system-packages \
     && cd /root \
     && git clone https://github.com/coredevices/pebble-tool.git --branch=v5.0.16 \
