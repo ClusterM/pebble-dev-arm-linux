@@ -37,9 +37,53 @@ elif [ "$1" == "docker-rm" ]; then
     exit 0
 elif [ "$1" == "docker-purge" ]; then
     # Delete all clustermeerkat/pebble-dev-arm-linux:* containers and images
-    docker ps -a | grep "clustermeerkat/pebble-dev-arm-linux" | awk '{print $1}' | xargs docker stop
-    docker ps -a | grep "clustermeerkat/pebble-dev-arm-linux" | awk '{print $1}' | xargs docker rm
-    docker images | grep "clustermeerkat/pebble-dev-arm-linux" | awk '{print $3}' | xargs docker rmi
+    echo "Purging all clustermeerkat/pebble-dev-arm-linux containers and images..."
+    
+    # Stop and remove containers (using grep to find all matching containers)
+    CONTAINERS=$(docker ps -a 2>/dev/null | grep "clustermeerkat/pebble-dev-arm-linux" | awk '{print $1}' | grep -v '^$')
+    CONTAINER_COUNT=0
+    if [ -n "$CONTAINERS" ]; then
+        for container_id in $CONTAINERS; do
+            docker stop "$container_id" >/dev/null 2>&1
+            docker rm "$container_id" >/dev/null 2>&1
+            CONTAINER_COUNT=$((CONTAINER_COUNT + 1))
+        done
+        echo "Removed $CONTAINER_COUNT container(s)."
+    else
+        echo "No containers found."
+    fi
+    
+    # Remove images
+    IMAGES_BEFORE=$(docker images --filter "reference=clustermeerkat/pebble-dev-arm-linux" --format "{{.ID}}" 2>/dev/null | grep -v '^$' | sort -u)
+    if [ -n "$IMAGES_BEFORE" ]; then
+        # Count images before removal
+        IMAGE_COUNT_BEFORE=$(echo "$IMAGES_BEFORE" | wc -l)
+        
+        # Remove all images
+        for image_id in $IMAGES_BEFORE; do
+            docker rmi -f "$image_id" >/dev/null 2>&1
+        done
+        
+        # Count images after removal
+        IMAGES_AFTER=$(docker images --filter "reference=clustermeerkat/pebble-dev-arm-linux" --format "{{.ID}}" 2>/dev/null | grep -v '^$' | sort -u)
+        IMAGE_COUNT_AFTER=0
+        if [ -n "$IMAGES_AFTER" ]; then
+            IMAGE_COUNT_AFTER=$(echo "$IMAGES_AFTER" | wc -l)
+        fi
+        
+        IMAGE_COUNT_REMOVED=$((IMAGE_COUNT_BEFORE - IMAGE_COUNT_AFTER))
+        if [ $IMAGE_COUNT_REMOVED -gt 0 ]; then
+            echo "Removed $IMAGE_COUNT_REMOVED image(s)."
+        elif [ $IMAGE_COUNT_BEFORE -gt 0 ]; then
+            echo "No images were removed (they may be in use)."
+        else
+            echo "No images found."
+        fi
+    else
+        echo "No images found."
+    fi
+    
+    echo "Purge completed successfully."
     exit 0
 fi
 
@@ -51,7 +95,6 @@ fi
 if ! docker inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
     # Container doesn't exist, create it
     echo "Creating container $CONTAINER_NAME"
-#    docker run -d --name="$CONTAINER_NAME" --restart=no -v ./:/app -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority:ro -e DISPLAY -e QT_SCALE_FACTOR=1 -e STOP_AFTER="$STOP_AFTER" "$IMAGE"
     if [ -z "$DISPLAY" ]; then
         # Set to default value
         DISPLAY=:0
