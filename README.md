@@ -16,7 +16,7 @@ Includes Pebble SDK + emulator + debugging tools + helper scripts.
 
 ⚠️ **Important**: Not all functionality is implemented:
 
-* **JavaScript engine is not working** — The JavaScript runtime (STPyV8) has been replaced with a lightweight Duktape-based alternative for ARM compatibility, but it doesn't fully support all PebbleKit JS features.
+* **JavaScript engine is not working** — The JavaScript runtime (STPyV8) is not available for ARM architecture. A stub package is provided that raises an exception when STPyV8 functionality is accessed, allowing code to import it without errors but clearly indicating that JavaScript execution is not supported.
 * **Phone-side code emulation is not working** — Code that runs on the phone (PebbleKit JS) cannot be emulated.
 * **Configuration pages are not working** — The `pebble emu-app-config ...` command does not work due to missing JavaScript engine support.
 
