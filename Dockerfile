@@ -20,6 +20,10 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         curl \
         wget \
         ca-certificates \
+        qemu-user-static \
+        binfmt-support \
+        libc6-armhf-cross \
+        libc6-dev-armhf-cross \
         gcc-arm-none-eabi \
         binutils-arm-none-eabi \
         libnewlib-arm-none-eabi \
@@ -52,7 +56,7 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         patchelf \
         zip \
         gdb-multiarch \
-    && cd /root/stpyv8_arm_package && pip3 install . --break-system-packages \
+    && cd /root/stpyv8_arm_package && pip3 install . --break-system-packages --no-deps --no-build-isolation --no-index --find-links /dev/null \
     && cd /root \
     && git clone https://github.com/coredevices/pebble-tool.git --branch=v5.0.16 \
     && cd /root/pebble-tool \
@@ -98,6 +102,10 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         python3-dev \
         python3-pip \
         zip \
+        qemu-user-static \
+        binfmt-support \
+        libc6-armhf-cross \
+        libc6-dev-armhf-cross \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
