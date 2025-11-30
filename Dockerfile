@@ -81,6 +81,7 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     && rm -rf /root/qemu \
     && chmod +x /root/docker-entrypoint.sh /usr/local/bin/qemu-pebble \
     && sed -i "3i from pathlib import Path\nPath('/tmp/pebble_flag').touch()" `which pebble` \
+    && ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb \
     && apt-get purge -y \
         build-essential \
         pkg-config \
