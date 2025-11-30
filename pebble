@@ -122,6 +122,7 @@ if ! docker inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
         -v ~/.Xauthority:/root/.Xauthority:ro \
         -e DISPLAY \
         -e STOP_AFTER="$STOP_AFTER" \
+        --net host \
         "$IMAGE"
 else
     # Container exists, check if it's running
