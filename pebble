@@ -2,10 +2,20 @@
 
 # Wrapper script to run pebble-tool
 
-IMAGE="clustermeerkat/pebble-dev-arm-linux:1.0"
+# Default settings
+TAG_DEFAULT="1.0"
+STOP_AFTER_DEFAULT=30
 
+# Default setting
+# Tag to use
+if [ -z "$TAG" ]; then
+    TAG="$TAG_DEFAULT"
+fi
+IMAGE="clustermeerkat/pebble-dev-arm-linux:$TAG"
 # Maximum inactivity time in minutes
-STOP_AFTER=30
+if [ -z "$STOP_AFTER" ]; then
+    STOP_AFTER="$STOP_AFTER_DEFAULT"
+fi
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
@@ -35,10 +45,14 @@ elif [ "$1" == "docker-rm" ]; then
     docker stop "$CONTAINER_NAME"
     docker rm "$CONTAINER_NAME"
     exit 0
-elif [ "$1" == "docker-purge" ]; then
+elif [ "$1" == "docker-purge" ] || [ "$1" == "docker-purge-all" ]; then
     # Delete all clustermeerkat/pebble-dev-arm-linux:* containers and images
-    echo "Purging all clustermeerkat/pebble-dev-arm-linux containers and images..."
-    
+    if [ "$1" == "docker-purge-all" ]; then
+        echo "Purging all clustermeerkat/pebble-dev-arm-linux containers and images..."
+    else
+        echo "Purging all clustermeerkat/pebble-dev-arm-linux containers..."
+    fi
+
     # Stop and remove containers (using grep to find all matching containers)
     CONTAINERS=$(docker ps -a 2>/dev/null | grep "clustermeerkat/pebble-dev-arm-linux" | awk '{print $1}' | grep -v '^$')
     CONTAINER_COUNT=0
@@ -54,35 +68,37 @@ elif [ "$1" == "docker-purge" ]; then
     fi
     
     # Remove images
-    IMAGES_BEFORE=$(docker images --filter "reference=clustermeerkat/pebble-dev-arm-linux" --format "{{.ID}}" 2>/dev/null | grep -v '^$' | sort -u)
-    if [ -n "$IMAGES_BEFORE" ]; then
-        # Count images before removal
-        IMAGE_COUNT_BEFORE=$(echo "$IMAGES_BEFORE" | wc -l)
-        
-        # Remove all images
-        for image_id in $IMAGES_BEFORE; do
-            docker rmi -f "$image_id" >/dev/null 2>&1
-        done
-        
-        # Count images after removal
-        IMAGES_AFTER=$(docker images --filter "reference=clustermeerkat/pebble-dev-arm-linux" --format "{{.ID}}" 2>/dev/null | grep -v '^$' | sort -u)
-        IMAGE_COUNT_AFTER=0
-        if [ -n "$IMAGES_AFTER" ]; then
-            IMAGE_COUNT_AFTER=$(echo "$IMAGES_AFTER" | wc -l)
-        fi
-        
-        IMAGE_COUNT_REMOVED=$((IMAGE_COUNT_BEFORE - IMAGE_COUNT_AFTER))
-        if [ $IMAGE_COUNT_REMOVED -gt 0 ]; then
-            echo "Removed $IMAGE_COUNT_REMOVED image(s)."
-        elif [ $IMAGE_COUNT_BEFORE -gt 0 ]; then
-            echo "No images were removed (they may be in use)."
+    if [ "$1" == "docker-purge-all" ]; then
+        IMAGES_BEFORE=$(docker images --filter "reference=clustermeerkat/pebble-dev-arm-linux" --format "{{.ID}}" 2>/dev/null | grep -v '^$' | sort -u)
+        if [ -n "$IMAGES_BEFORE" ]; then
+            # Count images before removal
+            IMAGE_COUNT_BEFORE=$(echo "$IMAGES_BEFORE" | wc -l)
+            
+            # Remove all images
+            for image_id in $IMAGES_BEFORE; do
+                docker rmi -f "$image_id" >/dev/null 2>&1
+            done
+            
+            # Count images after removal
+            IMAGES_AFTER=$(docker images --filter "reference=clustermeerkat/pebble-dev-arm-linux" --format "{{.ID}}" 2>/dev/null | grep -v '^$' | sort -u)
+            IMAGE_COUNT_AFTER=0
+            if [ -n "$IMAGES_AFTER" ]; then
+                IMAGE_COUNT_AFTER=$(echo "$IMAGES_AFTER" | wc -l)
+            fi
+            
+            IMAGE_COUNT_REMOVED=$((IMAGE_COUNT_BEFORE - IMAGE_COUNT_AFTER))
+            if [ $IMAGE_COUNT_REMOVED -gt 0 ]; then
+                echo "Removed $IMAGE_COUNT_REMOVED image(s)."
+            elif [ $IMAGE_COUNT_BEFORE -gt 0 ]; then
+                echo "No images were removed (they may be in use)."
+            else
+                echo "No images found."
+            fi
         else
             echo "No images found."
         fi
-    else
-        echo "No images found."
     fi
-    
+
     echo "Purge completed successfully."
     exit 0
 fi
