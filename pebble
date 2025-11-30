@@ -7,6 +7,12 @@ IMAGE="clustermeerkat/pebble-dev-arm-linux:1.0"
 # Maximum inactivity time in minutes
 STOP_AFTER=30
 
+# Check if Docker is installed
+if ! command -v docker &> /dev/null; then
+    echo "Docker could not be found"
+    exit 1
+fi
+
 # Generate container name based on current directory full path
 # Replace all characters except [a-zA-Z0-9] with hyphens
 CONTAINER_NAME=$(pwd | sed 's/[^a-zA-Z0-9]/-/g')
@@ -26,17 +32,30 @@ if [ "$1" == "docker-stop" ]; then
     exit 0
 elif [ "$1" == "docker-rm" ]; then
     echo "Removing container $CONTAINER_NAME"
+    docker stop "$CONTAINER_NAME"
     docker rm "$CONTAINER_NAME"
+    exit 0
+elif [ "$1" == "docker-purge" ]; then
+    # Delete all clustermeerkat/pebble-dev-arm-linux:* containers and images
+    docker ps -a | grep "clustermeerkat/pebble-dev-arm-linux" | awk '{print $1}' | xargs docker stop
+    docker ps -a | grep "clustermeerkat/pebble-dev-arm-linux" | awk '{print $1}' | xargs docker rm
+    docker images | grep "clustermeerkat/pebble-dev-arm-linux" | awk '{print $3}' | xargs docker rmi
     exit 0
 fi
 
-xhost +SI:localuser:root 2>&1 > /dev/null
+if [ ! -z "$DISPLAY" ]; then
+    xhost +SI:localuser:root 2>&1 > /dev/null
+fi
 
 # Check if container exists
 if ! docker inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
     # Container doesn't exist, create it
     echo "Creating container $CONTAINER_NAME"
 #    docker run -d --name="$CONTAINER_NAME" --restart=no -v ./:/app -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority:ro -e DISPLAY -e QT_SCALE_FACTOR=1 -e STOP_AFTER="$STOP_AFTER" "$IMAGE"
+    if [ -z "$DISPLAY" ]; then
+        # Set to default value
+        DISPLAY=:0
+    fi
     docker run -d --name="$CONTAINER_NAME" \
         --restart=no \
         -v ./:/app \
