@@ -44,6 +44,7 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         git \
         python \
         python3 \
+        pytgon3-dev \
         python3-pip \
         python3-venv \
         npm \
@@ -93,6 +94,7 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         bison \
         git \
         python \
+        python3-dev \
         python3-pip \
         zip \
     && apt-get autoremove -y \
