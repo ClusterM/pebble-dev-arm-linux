@@ -12,6 +12,14 @@ Includes Pebble SDK + emulator + debugging tools + helper scripts.
 * **Debugging support** — includes `gdb-multiarch`, so `pebble gdb ...` command works.
 
 
+## Supported Platforms
+
+This Docker image supports the following platforms:
+
+* `linux/arm64` (ARM 64-bit)
+* `linux/arm/v7` (ARM 32-bit, ARMv7)
+
+
 ## Limitations
 
 ⚠️ **Important**: Not all functionality is implemented:
