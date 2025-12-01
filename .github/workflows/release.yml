@@ -10,7 +10,7 @@ concurrency:
 env:
   IMAGE_NAME: pebble-dev-arm-linux
   PLATFORMS: linux/arm64,linux/arm/v7
-  VERSION: 1.0
+  VERSION: "1.0"
 
 jobs:
   public-nightly:
