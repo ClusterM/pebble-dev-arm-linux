@@ -1,8 +1,6 @@
-name: Publish Nightly Docker Image
+name: Publish Release Docker Image
 
 on:
-  push:
-    branches: [ master ]
   workflow_dispatch:
 
 concurrency:
@@ -12,6 +10,7 @@ concurrency:
 env:
   IMAGE_NAME: pebble-dev-arm-linux
   PLATFORMS: linux/arm64,linux/arm/v7
+  VERSION: "1.0"
 
 jobs:
   public-nightly:
@@ -41,6 +40,7 @@ jobs:
         with:
           push: true
           tags: |
-            clustermeerkat/${{ env.IMAGE_NAME }}:nightly
+            clustermeerkat/${{ env.IMAGE_NAME }}:latest
+            clustermeerkat/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
           platforms: ${{ env.PLATFORMS }}
           context: .

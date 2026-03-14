@@ -20,6 +20,10 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         curl \
         wget \
         ca-certificates \
+        qemu-user-static \
+        binfmt-support \
+        libc6-armhf-cross \
+        libc6-dev-armhf-cross \
         gcc-arm-none-eabi \
         binutils-arm-none-eabi \
         libnewlib-arm-none-eabi \
@@ -52,9 +56,9 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         patchelf \
         zip \
         gdb-multiarch \
-    && cd /root/stpyv8_arm_package && pip3 install . --break-system-packages \
+    && cd /root/stpyv8_arm_package && pip3 install . --break-system-packages --no-deps --no-build-isolation --no-index --find-links /dev/null \
     && cd /root \
-    && git clone https://github.com/coredevices/pebble-tool.git --branch=v5.0.16 \
+    && git clone https://github.com/coredevices/pebble-tool.git --branch=v5.0.29 \
     && cd /root/pebble-tool \
     && git apply /root/patches/pebble-tool.patch \
     && pip3 install . --break-system-packages \
@@ -69,14 +73,15 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     && rm -rf /root/dtc \
     && git clone https://github.com/coredevices/qemu.git \
     && cd qemu \
-    && git checkout 606b793bbb79fa4105dc2be6a8d43939bb2d342e \
+    && git checkout a0da0db291d92d491b4883cec01ba8f088ef5b3b \
     && git apply /root/patches/qemu.patch \
-    && ./configure --target-list=arm-softmmu --enable-gtk --disable-werror \
+    && ./configure --target-list=arm-softmmu --enable-gtk --disable-werror --enable-debug --extra-cflags=-DSTM32_UART_NO_BAUD_DELAY \
     && make -j$(nproc) install \
     && cd /root \
     && rm -rf /root/qemu \
     && chmod +x /root/docker-entrypoint.sh /usr/local/bin/qemu-pebble \
     && sed -i "3i from pathlib import Path\nPath('/tmp/pebble_flag').touch()" `which pebble` \
+    && ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb \
     && apt-get purge -y \
         build-essential \
         pkg-config \
@@ -98,9 +103,13 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         python3-dev \
         python3-pip \
         zip \
+        qemu-user-static \
+        binfmt-support \
+        libc6-armhf-cross \
+        libc6-dev-armhf-cross \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && pebble sdk install 4.9.77
+    && pebble sdk install 4.9.127
 
 ENTRYPOINT ["tini", "--", "/root/docker-entrypoint.sh"]
