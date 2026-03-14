@@ -60,7 +60,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     && cd /root \
     && git clone https://github.com/coredevices/pebble-tool.git --branch=v5.0.29 \
     && cd /root/pebble-tool \
-    && git apply /root/patches/pebble-tool.patch \
     && pip3 install . --break-system-packages \
     && cd /root \
     && git clone https://gitlab.com/qemu-project/dtc.git --branch=v1.7.2 \
