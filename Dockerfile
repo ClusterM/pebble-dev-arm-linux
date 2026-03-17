@@ -21,6 +21,14 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         wget \
         ca-certificates \
         qemu-user-static \
+<<<<<<< HEAD
+=======
+        binfmt-support \
+        libc6-armhf-cross \
+        libc6-dev-armhf-cross \
+        binutils-arm-none-eabi \
+        libnewlib-arm-none-eabi \
+>>>>>>> 5258b7f (more cleanup)
         build-essential \
         pkg-config \
         zlib1g-dev \
