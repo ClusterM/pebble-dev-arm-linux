@@ -33,11 +33,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         libx11-dev \
         libgettextpo-dev \
         gettext \
-        meson \
-        cmake \
-        flex \
-        bison \
-        gnupg \
         git \
         python \
         python3 \
@@ -76,11 +71,6 @@ RUN apt-get purge -y \
         libgdk-pixbuf2.0-dev \
         libx11-dev \
         libgettextpo-dev \
-        ninja \
-        meson \
-        cmake \
-        flex \
-        bison \
         git \
         python \
         python3-dev \
