@@ -58,11 +58,12 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         gdb-multiarch \
     && cd /root/stpyv8_arm_package && pip3 install . --break-system-packages --no-deps --no-build-isolation --no-index --find-links /dev/null \
     && cd /root \
-    && git clone https://github.com/coredevices/pebble-tool.git --branch=v5.0.16 \
+    && git clone https://github.com/coredevices/pebble-tool.git --branch=v5.0.29 \
     && cd /root/pebble-tool \
     && git apply /root/patches/pebble-tool.patch \
     && pip3 install . --break-system-packages \
     && cd /root \
+    && rm -rf /root/pebble-tool \
     && git clone https://gitlab.com/qemu-project/dtc.git --branch=v1.7.2 \
     && cd /root/dtc \
     && meson build \
@@ -73,9 +74,10 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     && rm -rf /root/dtc \
     && git clone https://github.com/coredevices/qemu.git \
     && cd qemu \
-    && git checkout 606b793bbb79fa4105dc2be6a8d43939bb2d342e \
+    && git checkout 73b3a52e8077adcfaf2005adb768e8f4e8a7bc74 \
+    && git submodule update --init --recursive \
     && git apply /root/patches/qemu.patch \
-    && ./configure --target-list=arm-softmmu --enable-gtk --disable-werror \
+    && ./configure --target-list=arm-softmmu --enable-gtk --disable-werror --enable-debug --extra-cflags=-DSTM32_UART_NO_BAUD_DELAY \
     && make -j$(nproc) install \
     && cd /root \
     && rm -rf /root/qemu \
@@ -110,6 +112,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && pebble sdk install 4.9.77
+    && pebble sdk install 4.9.127
 
 ENTRYPOINT ["tini", "--", "/root/docker-entrypoint.sh"]

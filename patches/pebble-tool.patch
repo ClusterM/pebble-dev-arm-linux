@@ -1,30 +1,17 @@
 diff --git a/pebble_tool/sdk/manager.py b/pebble_tool/sdk/manager.py
-index d9ebf2a..e05f575 100644
+index 17b8cb1..a996f4b 100644
 --- a/pebble_tool/sdk/manager.py
 +++ b/pebble_tool/sdk/manager.py
-@@ -105,6 +105,7 @@ class SDKManager(object):
-             self._install_from_handle(f)
+@@ -250,6 +250,12 @@ class SDKManager(object):
+             shutil.move(os.path.join(toolchain_path, 'toolchain-' + platform_name, folder), toolchain_path)
+         os.rmdir(os.path.join(toolchain_path, 'toolchain-' + platform_name))
  
-     def install_toolchain_from_url(self, url, sdk_version, platform_name):
-+        return
-         print("Downloading toolchain...")
- 
-         response = requests.head(url)
-@@ -160,6 +161,17 @@ class SDKManager(object):
-                 Requirements(sdk_info['requirements']).ensure_satisfied()
-                 os.mkdir(os.path.join(self.sdk_dir, sdk_info['version']))
-                 t.extractall(path)
++        print(f"Removing x64 build of qemu-pebble...")
++        try:
++            subprocess.run(["find", toolchain_path, "-name", "qemu-pebble", "-type", "f", "-delete"], check=False)
++        except subprocess.CalledProcessError:
++            print("Failed to execute. Continuing...")
 +
-+            print("Patching waf...")
-+            waf_path = os.path.join(path, "sdk-core", "pebble", "waf")
-+            if os.path.exists(waf_path):
-+                try:
-+                    subprocess.check_call(["patch", waf_path, "/root/patches/waf.patch"])
-+                except subprocess.CalledProcessError:
-+                    print("Failed to patch waf. Continuing...")
-+            else:
-+                print("Waf not found. Continuing...")
-+
-             venv_path = os.path.join(path, ".venv")
-             print("Preparing venv... (this may take a while)")
-             subprocess.check_call([sys.executable, "-m", "venv", venv_path])
+     def install_remote_sdk(self, version):
+         sdk_info = self.request("/v1/files/sdk-core/{}?channel={}".format(version, self.get_channel())).json()
+         if 'version' not in sdk_info:
