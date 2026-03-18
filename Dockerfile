@@ -24,7 +24,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         libglib2.0-dev \
         libgtk-3-0 \
         libgtk-3-dev \
-        libgdk-pixbuf2.0-dev \
         libx11-6 \
         libx11-dev \
         libgettextpo-dev \
