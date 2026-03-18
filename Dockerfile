@@ -22,7 +22,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         ca-certificates \
         build-essential \
         libglib2.0-dev \
-        libpixman-1-dev \
         libgtk-3-0 \
         libgtk-3-dev \
         libgdk-pixbuf2.0-dev \
@@ -60,7 +59,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
 RUN apt-get purge -y \
         build-essential \
         libglib2.0-dev \
-        libpixman-1-dev \
         device-tree-compiler \
         libgtk-3-dev \
         libgdk-pixbuf2.0-dev \
