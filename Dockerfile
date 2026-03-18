@@ -21,7 +21,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         wget \
         ca-certificates \
         build-essential \
-        pkg-config \
         zlib1g-dev \
         libglib2.0-dev \
         libpixman-1-dev \
@@ -61,7 +60,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     && sed -i "3i from pathlib import Path\nPath('/tmp/pebble_flag').touch()" `which pebble`
 RUN apt-get purge -y \
         build-essential \
-        pkg-config \
         zlib1g-dev \
         libglib2.0-dev \
         libpixman-1-dev \
