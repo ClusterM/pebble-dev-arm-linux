@@ -20,7 +20,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         curl \
         wget \
         ca-certificates \
-        qemu-user-static \
         build-essential \
         pkg-config \
         zlib1g-dev \
@@ -77,9 +76,6 @@ RUN apt-get purge -y \
         python3-pip \
         zip \
         qemu-user-static \
-        binfmt-support \
-        libc6-armhf-cross \
-        libc6-dev-armhf-cross \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
