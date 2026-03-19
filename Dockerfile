@@ -21,11 +21,8 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         wget \
         ca-certificates \
         build-essential \
-        libglib2.0-dev \
         libgtk-3-0 \
         libgtk-3-dev \
-        libx11-6 \
-        libx11-dev \
         gettext \
         git \
         python \
@@ -56,18 +53,12 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     && sed -i "3i from pathlib import Path\nPath('/tmp/pebble_flag').touch()" `which pebble`
 RUN apt-get purge -y \
         build-essential \
-        libglib2.0-dev \
-        device-tree-compiler \
         libgtk-3-dev \
-        libgdk-pixbuf2.0-dev \
-        libx11-dev \
-        libgettextpo-dev \
         git \
         python \
         python3-dev \
         python3-pip \
         zip \
-        qemu-user-static \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
