@@ -26,7 +26,6 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         libgtk-3-dev \
         libx11-6 \
         libx11-dev \
-        libgettextpo-dev \
         gettext \
         git \
         python \
