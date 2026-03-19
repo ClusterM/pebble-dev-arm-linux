@@ -50,8 +50,8 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     && cd /root \
     && rm -rf /root/qemu \
     && chmod +x /root/docker-entrypoint.sh /usr/local/bin/qemu-pebble \
-    && sed -i "3i from pathlib import Path\nPath('/tmp/pebble_flag').touch()" `which pebble`
-RUN apt-get purge -y \
+    && sed -i "3i from pathlib import Path\nPath('/tmp/pebble_flag').touch()" `which pebble` \
+    && apt-get purge -y \
         build-essential \
         libgtk-3-dev \
         git \
@@ -61,7 +61,7 @@ RUN apt-get purge -y \
         zip \
     && apt-get autoremove -y \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-RUN pebble sdk install 4.9.127
+    && rm -rf /var/lib/apt/lists/* \
+    && pebble sdk install 4.9.127
 
 ENTRYPOINT ["tini", "--", "/root/docker-entrypoint.sh"]
