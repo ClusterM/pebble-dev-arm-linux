@@ -8,7 +8,7 @@ index 17b8cb1..a996f4b 100644
  
 +        print(f"Removing x64 build of qemu-pebble...")
 +        try:
-+            subprocess.run(["find", toolchain_path, "-name", "qemu-pebble", "-type", "f", "-delete"], check=False)
++            subprocess.run(["find", toolchain_path, "-name", "qemu-pebble", "-type", "f", "-delete"], check=True)
 +        except subprocess.CalledProcessError:
 +            print("Failed to execute. Continuing...")
 +
