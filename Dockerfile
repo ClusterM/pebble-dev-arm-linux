@@ -20,31 +20,10 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         curl \
         wget \
         ca-certificates \
-        qemu-user-static \
-        binfmt-support \
-        libc6-armhf-cross \
-        libc6-dev-armhf-cross \
-        gcc-arm-none-eabi \
-        binutils-arm-none-eabi \
-        libnewlib-arm-none-eabi \
         build-essential \
-        pkg-config \
-        zlib1g-dev \
-        libglib2.0-dev \
-        libpixman-1-dev \
-        device-tree-compiler \
         libgtk-3-0 \
         libgtk-3-dev \
-        libgdk-pixbuf2.0-dev \
-        libx11-6 \
-        libx11-dev \
-        libgettextpo-dev \
         gettext \
-        meson \
-        cmake \
-        flex \
-        bison \
-        gnupg \
         git \
         python \
         python3 \
@@ -52,64 +31,37 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
         python3-pip \
         python3-venv \
         npm \
-        patch \
-        patchelf \
         zip \
-        gdb-multiarch \
     && cd /root/stpyv8_arm_package && pip3 install . --break-system-packages --no-deps --no-build-isolation --no-index --find-links /dev/null \
     && cd /root \
-    && git clone https://github.com/coredevices/pebble-tool.git --branch=v5.0.16 \
+    && git clone https://github.com/coredevices/pebble-tool.git --branch=v5.0.29 \
     && cd /root/pebble-tool \
     && git apply /root/patches/pebble-tool.patch \
     && pip3 install . --break-system-packages \
     && cd /root \
-    && git clone https://gitlab.com/qemu-project/dtc.git --branch=v1.7.2 \
-    && cd /root/dtc \
-    && meson build \
-    && cd build \
-    && ninja \
-    && meson install \
-    && cd /root \
-    && rm -rf /root/dtc \
+    && rm -rf /root/pebble-tool \
     && git clone https://github.com/coredevices/qemu.git \
     && cd qemu \
-    && git checkout 606b793bbb79fa4105dc2be6a8d43939bb2d342e \
+    && git checkout 73b3a52e8077adcfaf2005adb768e8f4e8a7bc74 \
+    && git submodule update --init --recursive \
     && git apply /root/patches/qemu.patch \
-    && ./configure --target-list=arm-softmmu --enable-gtk --disable-werror \
+    && ./configure --target-list=arm-softmmu --enable-gtk --disable-werror --enable-debug --extra-cflags=-DSTM32_UART_NO_BAUD_DELAY \
     && make -j$(nproc) install \
     && cd /root \
     && rm -rf /root/qemu \
     && chmod +x /root/docker-entrypoint.sh /usr/local/bin/qemu-pebble \
     && sed -i "3i from pathlib import Path\nPath('/tmp/pebble_flag').touch()" `which pebble` \
-    && ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb \
     && apt-get purge -y \
         build-essential \
-        pkg-config \
-        zlib1g-dev \
-        libglib2.0-dev \
-        libpixman-1-dev \
-        device-tree-compiler \
         libgtk-3-dev \
-        libgdk-pixbuf2.0-dev \
-        libx11-dev \
-        libgettextpo-dev \
-        ninja \
-        meson \
-        cmake \
-        flex \
-        bison \
         git \
         python \
         python3-dev \
         python3-pip \
         zip \
-        qemu-user-static \
-        binfmt-support \
-        libc6-armhf-cross \
-        libc6-dev-armhf-cross \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && pebble sdk install 4.9.77
+    && pebble sdk install 4.9.127
 
 ENTRYPOINT ["tini", "--", "/root/docker-entrypoint.sh"]

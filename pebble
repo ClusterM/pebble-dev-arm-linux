@@ -3,7 +3,7 @@
 # Wrapper script to run pebble-tool
 
 # Default settings
-TAG_DEFAULT="1.0"
+TAG_DEFAULT="1.1"
 STOP_AFTER_DEFAULT=30
 
 # Default setting
